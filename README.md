@@ -14,7 +14,6 @@ KipuBank es un contrato inteligente desarrollado en Solidity que simula un banco
 - **Retiros Controlados**: Límite fijo por transacción (`withdrawLimit`)
 - **Seguridad Avanzada**: Protección contra reentrancy y validaciones exhaustivas
 - **Eventos y Estadísticas**: Registro completo de operaciones
-- **Control de Acceso**: Funciones administrativas restringidas al owner
 
 ## 🏗️ Arquitectura del Contrato
 
@@ -23,7 +22,7 @@ KipuBank es un contrato inteligente desarrollado en Solidity que simula un banco
 - `bankCap` (inmutable): Capacidad total del banco
 - `balances`: Saldos individuales por dirección
 - `totalDeposits`: ETH total actualmente en el banco
-- `depositCount` / `withdrawCount`: Contadores de operaciones
+- `depositCount` y `withdrawCount`: Contadores de operaciones
 
 ### Funciones Principales
 
@@ -39,7 +38,7 @@ KipuBank es un contrato inteligente desarrollado en Solidity que simula un banco
 ### Seguridad Implementada
 - ✅ **Protección Reentrancy**: Modificador `noReentrancy`
 - ✅ **Patrón CEI**: Checks-Effects-Interactions correctamente implementado
-- ✅ **Errores Personalizados**: 6 tipos de errores específicos
+- ✅ **Errores Personalizados**: 7 tipos de errores específicos
 - ✅ **Transferencias Seguras**: Uso de `.call()` para envío de ETH
 - ✅ **Funciones Públicas**: Acceso transparente a estadísticas
 
@@ -48,7 +47,7 @@ KipuBank es un contrato inteligente desarrollado en Solidity que simula un banco
 ### Paso 1: Preparación
 1. Abrir [Remix IDE](https://remix.ethereum.org)
 2. Conectar MetaMask a **Sepolia Testnet**
-3. Asegurarse de tener ETH de prueba ([Faucet Sepolia](https://sepoliafaucet.com))
+3. Asegurarse de tener ETH de prueba ([Faucet Sepolia](https://cloud.google.com/application/web3/faucet/ethereum/sepolia))
 
 ### Paso 2: Compilación
 1. Crear archivo `KipuBank.sol` en carpeta `contracts/`
@@ -62,8 +61,8 @@ KipuBank es un contrato inteligente desarrollado en Solidity que simula un banco
 3. Configurar parámetros del constructor:
 
 ```
-_withdrawLimit: 100000000000000000    (0.1 ETH en wei)
-_bankCap:      500000000000000000    (0.5 ETH en wei)
+_withdrawLimit: 10000000000000000    (0.01 ETH en wei)
+_bankCap:      50000000000000000    (0.05 ETH en wei)
 ```
 
 4. Click "Deploy" → Confirmar en MetaMask
@@ -79,8 +78,9 @@ _bankCap:      500000000000000000    (0.5 ETH en wei)
 // 3. Confirmar transacción en MetaMask
 
 Ejemplos de valores:
-0.5 ETH = 500000000000000000 wei
-0.1 ETH = 100000000000000000 wei
+0.02 ETH = 20000000000000000 wei
+0.01 ETH = 10000000000000000 wei
+0.005 ETH = 5000000000000000 wei
 ```
 
 ### Realizar Retiros
@@ -130,23 +130,12 @@ Los eventos aparecen en la consola de Remix después de cada transacción exitos
 
 ## 🧪 Casos de Prueba Recomendados
 
-1. **✅ Depósito válido**: Depositar 0.5 ETH → Success
+1. **✅ Depósito válido**: Depositar 0.02 ETH → Success
 2. **❌ Exceder bankCap**: Intentar depositar más del límite total
-3. **✅ Retiro válido**: Retirar 0.3 ETH con saldo suficiente
+3. **✅ Retiro válido**: Retirar 0.01 ETH con saldo suficiente
 4. **❌ Exceder withdrawLimit**: Intentar retirar más del límite
 5. **❌ Saldo insuficiente**: Retirar más ETH del disponible
 6. **✅ Consultar estadísticas**: Usar funciones `getTotalDeposits()`, etc.
-
-## 🔗 Valores de Referencia
-
-### Conversiones Wei ↔ ETH
-- 1 ETH = 1,000,000,000,000,000,000 wei (18 decimales)
-- 0.1 ETH = 100,000,000,000,000,000 wei
-- 0.01 ETH = 10,000,000,000,000,000 wei
-
-### Configuraciones Sugeridas
-- **Testing**: withdrawLimit = 1 ETH, bankCap = 10 ETH
-- **Desarrollo**: withdrawLimit = 0.1 ETH, bankCap = 1 ETH
 
 ## ⚠️ Nota sobre Transparencia en Blockchain
 
