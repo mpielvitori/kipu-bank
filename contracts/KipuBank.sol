@@ -8,78 +8,78 @@ pragma solidity ^0.8.22;
  */
 contract KipuBank {
     /**
-     * @notice Variables de estado que almacenan información sobre el banco
+     * @notice State variables that store information about the bank
      */
     
-    /// @notice Versión del contrato KipuBank
+    /// @notice Version of the KipuBank contract
     string public constant VERSION = "1.0.0";
     
-    // Variables de estado
-    /// @notice Número total de operaciones de depósito realizadas
+    // State variables
+    /// @notice Total number of deposit operations performed
     uint256 private depositCount;
     
-    /// @notice Número total de operaciones de retiro realizadas
+    /// @notice Total number of withdrawal operations performed
     uint256 private withdrawCount;
     
-    /// @notice Cantidad máxima que puede retirarse en una transacción
+    /// @notice Maximum amount that can be withdrawn in a single transaction
     uint256 private immutable withdrawLimit;
     
-    /// @notice Límite total de ETH que puede depositarse en el banco
+    /// @notice Total limit of ETH that can be deposited in the bank
     uint256 private immutable bankCap;
     
-    /// @notice Suma total de ETH depositado actualmente en el banco
+    /// @notice Total sum of ETH currently deposited in the bank
     uint256 private totalDeposits;
     
-    /// @notice Mapeo de direcciones a sus saldos depositados
+    /// @notice Mapping of addresses to their deposited balances
     mapping(address => uint256) public balances;
     
-    /// @notice Dirección del propietario del contrato
+    /// @notice Address of the contract owner
     address private immutable owner;
     
-    /// @notice Variable para prevenir ataques de reentrancy
+    /// @notice Variable to prevent reentrancy attacks
     bool private locked;
     
-    // Eventos
-    /// @notice Emitido cuando un usuario realiza un depósito
-    /// @param account Dirección del usuario que deposita
-    /// @param amount Cantidad de ETH depositada
+    // Events
+    /// @notice Emitted when a user makes a deposit
+    /// @param account Address of the user making the deposit
+    /// @param amount Amount of ETH deposited
     event Deposit(address indexed account, uint256 amount);
     
-    /// @notice Emitido cuando un usuario realiza un retiro
-    /// @param account Dirección del usuario que retira
-    /// @param amount Cantidad de ETH retirada
+    /// @notice Emitted when a user makes a withdrawal
+    /// @param account Address of the user making the withdrawal
+    /// @param amount Amount of ETH withdrawn
     event Withdraw(address indexed account, uint256 amount);
     
-    // Errores personalizados
-    /// @notice Error lanzado cuando un depósito excede la capacidad del banco
-    /// @param attempted Cantidad que se intentó depositar
-    /// @param available Espacio disponible en el banco
+    // Custom errors
+    /// @notice Error thrown when a deposit exceeds the bank's capacity
+    /// @param attempted Amount attempted to deposit
+    /// @param available Available space in the bank
     error ExceedsBankCap(uint256 attempted, uint256 available);
     
-    /// @notice Error lanzado cuando un retiro excede el límite por transacción
-    /// @param attempted Cantidad que se intentó retirar
-    /// @param limit Límite máximo por retiro
+    /// @notice Error thrown when a withdrawal exceeds the per-transaction limit
+    /// @param attempted Amount attempted to withdraw
+    /// @param limit Maximum withdrawal limit
     error ExceedsWithdrawLimit(uint256 attempted, uint256 limit);
     
-    /// @notice Error lanzado cuando un usuario intenta retirar más de su saldo
-    /// @param available Saldo disponible del usuario
-    /// @param required Cantidad solicitada para retiro
+    /// @notice Error thrown when a user tries to withdraw more than their balance
+    /// @param available User's available balance
+    /// @param required Amount requested for withdrawal
     error InsufficientBalance(uint256 available, uint256 required);
     
-    /// @notice Error lanzado cuando falla una transferencia de ETH
+    /// @notice Error thrown when an ETH transfer fails
     error TransferFailed();
     
-    /// @notice Error lanzado cuando se detecta un intento de reentrancy
+    /// @notice Error thrown when a reentrancy attempt is detected
     error ReentrancyDetected();
     
-    /// @notice Error lanzado cuando el límite de retiro en el constructor es inválido
+    /// @notice Error thrown when the withdrawal limit in constructor is invalid
     error InvalidWithdrawLimit();
     
-    /// @notice Error lanzado cuando la capacidad del banco en el constructor es inválida
+    /// @notice Error thrown when the bank capacity in constructor is invalid
     error InvalidBankCap();
     
-    // Modificador para evitar reentradas
-    /// @notice Modificador que previene ataques de reentrancy
+    // Modifier to prevent reentrancy
+    /// @notice Modifier that prevents reentrancy attacks
     modifier noReentrancy() {
         if (locked) {
             revert ReentrancyDetected();
@@ -92,9 +92,9 @@ contract KipuBank {
 
 
     /**
-     * @dev Constructor que establece los límites y el propietario del contrato.
-     * @param _withdrawLimit Límite de retiro por transacción en wei.
-     * @param _bankCap Límite global de depósitos en wei.
+     * @dev Constructor that sets the limits and owner of the contract.
+     * @param _withdrawLimit Withdrawal limit per transaction in wei.
+     * @param _bankCap Global deposit limit in wei.
      */
     constructor(uint256 _withdrawLimit, uint256 _bankCap) {
         if (_withdrawLimit == 0) {
@@ -109,8 +109,8 @@ contract KipuBank {
     }
 
     /**
-     * @dev Permite a los usuarios depositar ETH en su bóveda personal.
-     * @notice Requiere que el depósito no exceda el límite global del banco.
+     * @dev Allows users to deposit ETH into their personal vault.
+     * @notice Requires that the deposit does not exceed the global bank limit.
      */
     function deposit() external payable noReentrancy {
         if (totalDeposits + msg.value > bankCap) {
@@ -127,10 +127,10 @@ contract KipuBank {
     }
 
     /**
-     * @dev Permite a los usuarios retirar ETH de su bóveda personal.
-     * @notice Requiere que el retiro no exceda el límite por transacción y que el usuario tenga saldo suficiente.
-     * @param amount Cantidad de ETH a retirar en wei.
-     * @custom:security Protegido contra reentrancy y overflows
+     * @dev Allows users to withdraw ETH from their personal vault.
+     * @notice Requires that the withdrawal does not exceed the per-transaction limit and that the user has sufficient balance.
+     * @param amount Amount of ETH to withdraw in wei.
+     * @custom:security Protected against reentrancy and overflows
      */
     function withdraw(uint256 amount) external noReentrancy {
         // Checks
@@ -157,37 +157,37 @@ contract KipuBank {
     }
 
     /**
-     * @dev Función de vista pública para consultar el saldo total del banco.
-     * @return El saldo total de ETH actualmente depositado en el banco.
-     * @notice Esta función puede ser llamada por cualquier usuario sin costo de gas.
+     * @dev Public view function to query the bank's total balance.
+     * @return The total balance of ETH currently deposited in the bank.
+     * @notice This function can be called by any user without gas cost.
      */
     function getTotalDeposits() external view returns (uint256) {
         return totalDeposits;
     }
 
     /**
-     * @dev Función de vista pública para consultar el número total de depósitos realizados.
-     * @return El número total de operaciones de depósito completadas.
-     * @notice Esta función puede ser llamada por cualquier usuario sin costo de gas.
+     * @dev Public view function to query the total number of deposits made.
+     * @return The total number of completed deposit operations.
+     * @notice This function can be called by any user without gas cost.
      */
     function getTotalDepositsCount() external view returns (uint256) {
         return depositCount;
     }
 
     /**
-     * @dev Función de vista pública para consultar el número total de retiros realizados.
-     * @return El número total de operaciones de retiro completadas.
-     * @notice Esta función puede ser llamada por cualquier usuario sin costo de gas.
+     * @dev Public view function to query the total number of withdrawals made.
+     * @return The total number of completed withdrawal operations.
+     * @notice This function can be called by any user without gas cost.
      */
     function getTotalWithdrawalsCount() external view returns (uint256) {
         return withdrawCount;
     }
 
     /**
-     * @dev Función privada para verificar el saldo de un usuario.
-     * @param account Dirección del usuario a consultar.
-     * @return El saldo actual del usuario en wei.
-     * @notice Esta función es interna y solo puede ser llamada por otras funciones del contrato.
+     * @dev Private function to check a user's balance.
+     * @param account Address of the user to query.
+     * @return The user's current balance in wei.
+     * @notice This function is internal and can only be called by other contract functions.
      */
     function _checkBalance(address account) private view returns (uint256) {
         return balances[account];
